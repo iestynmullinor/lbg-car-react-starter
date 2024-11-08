@@ -1,18 +1,19 @@
-FROM node:19-alpine as build
+FROM node:19-alpine AS build
 
-# change into a folder called /app
 WORKDIR /app
 
-# only copy package.json
-COPY package.json .
+COPY package.json yarn.lock ./
 
-# download the project dependencies
-RUN npm install
+RUN yarn install
 
-# copy everything from the react app folder to the /app folder in the container
 COPY . .
 
-# package up the react project in the /app directory
-RUN npm run build
+RUN yarn build
 
-CMD ["npm", "run", "start"]
+FROM nginx:alpine
+
+COPY --from=build /app/build /usr/share/nginx/html
+
+EXPOSE 80
+
+CMD ["nginx", "-g", "daemon off;"]
